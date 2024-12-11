@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Information - Check-In/Check-Out</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .header {
+        background-color: #343a40;
+        color: white;
+        padding: 10px;
+        text-align: left;
+        font-size: 24px;
+      }
+      .container {
+        padding: 20px;
+      }
+      .search-container {
+        margin-bottom: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: center;
+      }
+      input[type="text"] {
+        width: 90%;
+        padding: 5px;
+      }
+      .checkin {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      .checkout {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+      a {
+        color: blue;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">Product Information</div>
+
+    <div class="container">
+      <div id="login-section">
+        <input type="text" id="username" placeholder="Enter Username" />
+        <input type="password" id="password" placeholder="Enter Password" />
+        <button class="checkin" onclick="login()">Login</button>
+        <div id="login-status">Not logged in</div>
+      </div>
+
+      <div id="table-section" style="display: none">
+        <div class="search-container">
+          <input
+            type="text"
+            id="search"
+            placeholder="Search by Serial, Product Info, or Type"
+          />
+          <button onclick="filterTable()">Search</button>
+        </div>
+        <table id="product-table">
+          <thead>
+            <tr>
+              <th>Serial Number</th>
+              <th>Product Info</th>
+              <th>Data Sheet</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Current User</th>
+              <th>Check-In/Out Dates</th>
+              <th>Last User Info</th>
+              <th>Future Reservations</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table rows will be dynamically generated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let isLoggedIn = false;
+      let currentUser = "";
+
+      const users = [
+        { username: "user1", password: "password1" },
+        { username: "user2", password: "password2" },
+        { username: "user3", password: "password3" },
+      ];
+
+      const products = [
+        {
+          serial: "P001",
+          info: "Laptop",
+          dataSheet: "#",
+          type: "Electronics",
+          status: "Available",
+          currentUser: "N/A",
+          lastUser: "N/A",
+          dates: "N/A",
+        },
+        {
+          serial: "P002",
+          info: "Projector",
+          dataSheet: "#",
+          type: "Electronics",
+          status: "Available",
+          currentUser: "N/A",
+          lastUser: "N/A",
+          dates: "N/A",
+        },
+        {
+          serial: "P003",
+          info: "Printer",
+          dataSheet: "#",
+          type: "Peripheral",
+          status: "Available",
+          currentUser: "N/A",
+          lastUser: "N/A",
+          dates: "N/A",
+        },
+      ];
+
+      function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        const user = users.find(
+          (u) => u.username === username && u.password === password
+        );
+
+        if (user) {
+          isLoggedIn = true;
+          currentUser = user.username;
+          document.getElementById(
+            "login-status"
+          ).innerText = `Logged in as: ${currentUser}`;
+          document.getElementById("login-section").style.display = "none";
+          document.getElementById("table-section").style.display = "block";
+          populateTable();
+        } else {
+          document.getElementById("login-status").innerText =
+            "Invalid username or password!";
+        }
+      }
+
+      function populateTable() {
+        const tableBody = document.querySelector("#product-table tbody");
+        tableBody.innerHTML = ""; // Clear table
+
+        products.forEach((product) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                <td>${product.serial}</td>
+                <td>${product.info}</td>
+                <td><a href="${product.dataSheet}" target="_blank">Open</a></td>
+                <td>${product.type}</td>
+                <td id="status-${product.serial}">${product.status}</td>
+                <td id="current-user-${product.serial}">${product.currentUser}</td>
+                <td id="dates-${product.serial}">${product.dates}</td>
+                <td id="last-user-${product.serial}">${product.lastUser}</td>
+                <td><input type="text" id="reservation-${product.serial}" placeholder="Enter future reservation"></td>
+                <td>
+                    <button class="checkin" onclick="checkIn('${product.serial}')">Check In</button>
+                    <button class="checkout" onclick="checkOut('${product.serial}')">Check Out</button>
+                </td>
+            `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      function checkIn(serial) {
+        const product = products.find((p) => p.serial === serial);
+        const statusCell = document.getElementById(`status-${serial}`);
+
+        if (product.status !== "Available") {
+          alert("This product is already checked in!");
+          return;
+        }
+
+        const now = new Date().toLocaleString();
+        product.status = "Checked In";
+        product.currentUser = currentUser;
+        product.dates = `Checked In: ${now}`;
+        product.lastUser = currentUser;
+
+        populateTable();
+        alert(`Product ${serial} checked in successfully.`);
+      }
+
+      function checkOut(serial) {
+        const product = products.find((p) => p.serial === serial);
+        const statusCell = document.getElementById(`status-${serial}`);
+
+        if (product.status === "Available") {
+          alert("This product is not checked in!");
+          return;
+        }
+
+        const now = new Date().toLocaleString();
+        product.status = "Available";
+        product.currentUser = "N/A";
+        product.dates += ` | Checked Out: ${now}`;
+
+        populateTable();
+        alert(`Product ${serial} checked out successfully.`);
+      }
+
+      function filterTable() {
+        const searchValue = document
+          .getElementById("search")
+          .value.toLowerCase();
+        const filteredProducts = products.filter(
+          (product) =>
+            product.serial.toLowerCase().includes(searchValue) ||
+            product.info.toLowerCase().includes(searchValue) ||
+            product.type.toLowerCase().includes(searchValue)
+        );
+        populateTable(filteredProducts);
+      }
+
+      function populateTable(filteredProducts = products) {
+        const tableBody = document.querySelector("#product-table tbody");
+        tableBody.innerHTML = ""; // Clear table
+
+        filteredProducts.forEach((product) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                <td>${product.serial}</td>
+                <td>${product.info}</td>
+                <td><a href="${product.dataSheet}" target="_blank">Open</a></td>
+                <td>${product.type}</td>
+                <td id="status-${product.serial}">${product.status}</td>
+                <td id="current-user-${product.serial}">${product.currentUser}</td>
+                <td id="dates-${product.serial}">${product.dates}</td>
+                <td id="last-user-${product.serial}">${product.lastUser}</td>
+                <td><input type="text" id="reservation-${product.serial}" placeholder="Enter future reservation"></td>
+                <td>
+                    <button class="checkin" onclick="checkIn('${product.serial}')">Check In</button>
+                    <button class="checkout" onclick="checkOut('${product.serial}')">Check Out</button>
+                </td>
+            `;
+          tableBody.appendChild(row);
+        });
+      }
+    </script>
+  </body>
+</html>
